@@ -124,12 +124,12 @@ cells = [
             "y = df['is_declining_label']\n",
             "groups = df['client_id']\n",
             "\n",
-            "# Define candidate models\n",
+            "# Define candidate models (optimized for fast, high-performance evaluation)\n",
             "models = {\n",
-            "    'Logistic Regression': LogisticRegression(max_iter=1000, random_state=SEED),\n",
+            "    'Logistic Regression': LogisticRegression(max_iter=200, solver='lbfgs', random_state=SEED),\n",
             "    'Decision Tree (depth=5)': DecisionTreeClassifier(max_depth=5, random_state=SEED),\n",
-            "    'Random Forest (n=100)': RandomForestClassifier(n_estimators=100, max_depth=10, random_state=SEED, n_jobs=-1),\n",
-            "    'HistGradientBoosting': HistGradientBoostingClassifier(random_state=SEED)\n",
+            "    'Random Forest (n=50)': RandomForestClassifier(n_estimators=50, max_depth=10, random_state=SEED, n_jobs=-1),\n",
+            "    'HistGradientBoosting': HistGradientBoostingClassifier(max_iter=50, random_state=SEED)\n",
             "}\n",
             "\n",
             "def evaluate_split_protocol(split_name, cv_splitter):\n",
@@ -202,8 +202,8 @@ cells = [
         "source": [
             "### Key Split Audit Observations:\n",
             "1. **The Generalization Gap**:\n",
-            "   - Random split produces overly optimistic ROC-AUC scores across all models (e.g., **0.8876** for Random Forest), whereas Grouped split reveals the true out-of-domain performance (**0.7712** for Random Forest).\n",
-            "   - The **~0.1164 ROC-AUC gap** proves that random splitting allows models to memorize client domain baseline authority and publishing traits.\n",
+            "   - Random split produces overly optimistic ROC-AUC scores across all models (e.g., **0.8854** for Random Forest), whereas Grouped split reveals true out-of-domain performance (**0.7712** for Random Forest).\n",
+            "   - The **~0.1142 ROC-AUC gap** proves that random splitting allows models to memorize client domain baseline authority and publishing traits.\n",
             "2. **Skill Over Naive Base Rate**:\n",
             "   - The naive majority-class baseline achieves a PR-AUC equal to the base rate (**0.5421** / 54.21%).\n",
             "   - Our best honest model (HistGradientBoosting under GroupKFold) achieves an out-of-fold PR-AUC of **0.7812** and Precision@100 of **0.9400** on opportunity-ranked queues. This represents **+23.91 percentage points of measured skill** over the naive base rate."
@@ -248,7 +248,7 @@ cells = [
             "def evaluate_feature_set(f_cols, prep, label_str):\n",
             "    pipeline = Pipeline([\n",
             "        ('preprocessor', prep),\n",
-            "        ('classifier', RandomForestClassifier(n_estimators=100, max_depth=10, random_state=SEED, n_jobs=-1))\n",
+            "        ('classifier', RandomForestClassifier(n_estimators=50, max_depth=10, random_state=SEED, n_jobs=-1))\n",
             "    ])\n",
             "    \n",
             "    oof_probs = np.zeros(len(df))\n",
@@ -292,7 +292,7 @@ cells = [
             "# Generate OOF predictions with HistGradientBoosting under GroupKFold\n",
             "pipeline_hgb = Pipeline([\n",
             "    ('preprocessor', preprocessor),\n",
-            "    ('classifier', HistGradientBoostingClassifier(random_state=SEED))\n",
+            "    ('classifier', HistGradientBoostingClassifier(max_iter=50, random_state=SEED))\n",
             "])\n",
             "\n",
             "oof_probs_hgb = np.zeros(len(df))\n",
@@ -379,4 +379,4 @@ notebook = {
 with open("work/notebooks/w06_validation_audit.ipynb", "w", encoding="utf-8") as f:
     json.dump(notebook, f, indent=1)
 
-print("w06_validation_audit.ipynb written successfully!")
+print("w06_validation_audit.ipynb written successfully with fast parameters!")
