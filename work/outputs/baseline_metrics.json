@@ -1,0 +1,19 @@
+{
+  "lane": "Lane 2 \u2014 Refresh / Content Opportunity Scoring",
+  "base_rate": 0.5420666666666667,
+  "precision_at_k": {
+    "precision_at_10": 0.6,
+    "precision_at_20": 0.45,
+    "precision_at_50": 0.44,
+    "precision_at_100": 0.38,
+    "precision_at_500": 0.436
+  },
+  "total_rows_scored": 30000,
+  "rule_definition": "score = (days_since_last_update >= 90) * (impressions_90d >= 300) * log1p(impressions_90d)",
+  "reason_code": "stale_visible_demand_decay_risk",
+  "action_label": "REFRESH_CONTENT_AND_METADATA",
+  "signal_verdicts": {
+    "freshness_tier": "MIXED",
+    "impression_tier": "CONFIRMED"
+  }
+}

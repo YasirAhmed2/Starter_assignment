@@ -1,8 +1,9 @@
-{
+import json
+
+nb = {
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "347045fd",
    "metadata": {},
    "source": [
     "# ML-07 — Baseline Action Score and Signal Audit\n",
@@ -15,7 +16,6 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9059247e",
    "metadata": {},
    "source": [
     "## 1. My rule and its reason codes\n",
@@ -29,185 +29,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
-   "id": "711afc03",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-22T10:32:15.858397Z",
-     "iopub.status.busy": "2026-08-22T10:32:15.856176Z",
-     "iopub.status.idle": "2026-08-22T10:32:19.094364Z",
-     "shell.execute_reply": "2026-08-22T10:32:19.086306Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "=== SIGNAL AUDIT 1: Freshness Tier vs Decline Rate ===\n"
-     ]
-    },
-    {
-     "data": {
-      "text/html": [
-       "<div>\n",
-       "<style scoped>\n",
-       "    .dataframe tbody tr th:only-of-type {\n",
-       "        vertical-align: middle;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe tbody tr th {\n",
-       "        vertical-align: top;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe thead th {\n",
-       "        text-align: right;\n",
-       "    }\n",
-       "</style>\n",
-       "<table border=\"1\" class=\"dataframe\">\n",
-       "  <thead>\n",
-       "    <tr style=\"text-align: right;\">\n",
-       "      <th></th>\n",
-       "      <th>freshness_tier</th>\n",
-       "      <th>n</th>\n",
-       "      <th>declining_count</th>\n",
-       "      <th>decline_rate</th>\n",
-       "      <th>avg_impressions_90d</th>\n",
-       "    </tr>\n",
-       "  </thead>\n",
-       "  <tbody>\n",
-       "    <tr>\n",
-       "      <th>0</th>\n",
-       "      <td>0-30</td>\n",
-       "      <td>20480</td>\n",
-       "      <td>10473</td>\n",
-       "      <td>0.511377</td>\n",
-       "      <td>4199.614062</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>1</th>\n",
-       "      <td>181+</td>\n",
-       "      <td>174</td>\n",
-       "      <td>82</td>\n",
-       "      <td>0.471264</td>\n",
-       "      <td>1172.448276</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2</th>\n",
-       "      <td>31-90</td>\n",
-       "      <td>175</td>\n",
-       "      <td>103</td>\n",
-       "      <td>0.588571</td>\n",
-       "      <td>6506.748571</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>3</th>\n",
-       "      <td>91-180</td>\n",
-       "      <td>9171</td>\n",
-       "      <td>5604</td>\n",
-       "      <td>0.611057</td>\n",
-       "      <td>7486.665140</td>\n",
-       "    </tr>\n",
-       "  </tbody>\n",
-       "</table>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "  freshness_tier      n  declining_count  decline_rate  avg_impressions_90d\n",
-       "0           0-30  20480            10473      0.511377          4199.614062\n",
-       "1           181+    174               82      0.471264          1172.448276\n",
-       "2          31-90    175              103      0.588571          6506.748571\n",
-       "3         91-180   9171             5604      0.611057          7486.665140"
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    },
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "=== SIGNAL AUDIT 2: Impression Tier vs Decline Rate ===\n"
-     ]
-    },
-    {
-     "data": {
-      "text/html": [
-       "<div>\n",
-       "<style scoped>\n",
-       "    .dataframe tbody tr th:only-of-type {\n",
-       "        vertical-align: middle;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe tbody tr th {\n",
-       "        vertical-align: top;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe thead th {\n",
-       "        text-align: right;\n",
-       "    }\n",
-       "</style>\n",
-       "<table border=\"1\" class=\"dataframe\">\n",
-       "  <thead>\n",
-       "    <tr style=\"text-align: right;\">\n",
-       "      <th></th>\n",
-       "      <th>impression_tier</th>\n",
-       "      <th>n</th>\n",
-       "      <th>declining_count</th>\n",
-       "      <th>decline_rate</th>\n",
-       "      <th>avg_days_unupdated</th>\n",
-       "    </tr>\n",
-       "  </thead>\n",
-       "  <tbody>\n",
-       "    <tr>\n",
-       "      <th>0</th>\n",
-       "      <td>excellent</td>\n",
-       "      <td>1078</td>\n",
-       "      <td>498</td>\n",
-       "      <td>0.461967</td>\n",
-       "      <td>58.338590</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>1</th>\n",
-       "      <td>good</td>\n",
-       "      <td>7205</td>\n",
-       "      <td>4223</td>\n",
-       "      <td>0.586121</td>\n",
-       "      <td>55.259681</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2</th>\n",
-       "      <td>low</td>\n",
-       "      <td>11248</td>\n",
-       "      <td>5106</td>\n",
-       "      <td>0.453947</td>\n",
-       "      <td>36.057344</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>3</th>\n",
-       "      <td>moderate</td>\n",
-       "      <td>10469</td>\n",
-       "      <td>6435</td>\n",
-       "      <td>0.614672</td>\n",
-       "      <td>49.320948</td>\n",
-       "    </tr>\n",
-       "  </tbody>\n",
-       "</table>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "  impression_tier      n  declining_count  decline_rate  avg_days_unupdated\n",
-       "0       excellent   1078              498      0.461967           58.338590\n",
-       "1            good   7205             4223      0.586121           55.259681\n",
-       "2             low  11248             5106      0.453947           36.057344\n",
-       "3        moderate  10469             6435      0.614672           49.320948"
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    }
-   ],
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "import os, json\n",
     "import pandas as pd\n",
@@ -238,7 +62,6 @@
   },
   {
    "cell_type": "markdown",
-   "id": "577e295b",
    "metadata": {},
    "source": [
     "### Signal Audit Verdicts\n",
@@ -264,7 +87,6 @@
   },
   {
    "cell_type": "markdown",
-   "id": "8ffe1177",
    "metadata": {},
    "source": [
     "## 2. Build the ranked queue (writes the CSV)\n",
@@ -274,40 +96,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
-   "id": "10937269",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-22T10:32:19.122149Z",
-     "iopub.status.busy": "2026-08-22T10:32:19.119216Z",
-     "iopub.status.idle": "2026-08-22T10:32:20.388256Z",
-     "shell.execute_reply": "2026-08-22T10:32:20.384152Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Base Rate (Decline % in overall dataset): 0.5421 (54.21%)\n",
-      "Precision@K Evaluation:\n",
-      "  precision_at_10: 0.6000\n",
-      "  precision_at_20: 0.4500\n",
-      "  precision_at_50: 0.4400\n",
-      "  precision_at_100: 0.3800\n",
-      "  precision_at_500: 0.4360\n"
-     ]
-    },
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "[SUCCESS] Exported ranked queue to work/outputs/baseline_action_score.csv\n",
-      "[SUCCESS] Exported receipts to work/outputs/baseline_metrics.json\n"
-     ]
-    }
-   ],
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "# Ensure output directory exists\n",
     "os.makedirs('../outputs', exist_ok=True)\n",
@@ -368,7 +159,6 @@
   },
   {
    "cell_type": "markdown",
-   "id": "b1638360",
    "metadata": {},
    "source": [
     "## 3. Top-10 review\n",
@@ -378,193 +168,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
-   "id": "8ee0c5d7",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-22T10:32:20.397748Z",
-     "iopub.status.busy": "2026-08-22T10:32:20.396309Z",
-     "iopub.status.idle": "2026-08-22T10:32:20.443435Z",
-     "shell.execute_reply": "2026-08-22T10:32:20.439905Z"
-    }
-   },
-   "outputs": [
-    {
-     "data": {
-      "text/html": [
-       "<div>\n",
-       "<style scoped>\n",
-       "    .dataframe tbody tr th:only-of-type {\n",
-       "        vertical-align: middle;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe tbody tr th {\n",
-       "        vertical-align: top;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe thead th {\n",
-       "        text-align: right;\n",
-       "    }\n",
-       "</style>\n",
-       "<table border=\"1\" class=\"dataframe\">\n",
-       "  <thead>\n",
-       "    <tr style=\"text-align: right;\">\n",
-       "      <th></th>\n",
-       "      <th>rank</th>\n",
-       "      <th>content_id</th>\n",
-       "      <th>client_id</th>\n",
-       "      <th>baseline_score</th>\n",
-       "      <th>impressions_90d</th>\n",
-       "      <th>days_since_last_update</th>\n",
-       "      <th>avg_position</th>\n",
-       "      <th>is_declining_label</th>\n",
-       "    </tr>\n",
-       "  </thead>\n",
-       "  <tbody>\n",
-       "    <tr>\n",
-       "      <th>0</th>\n",
-       "      <td>1</td>\n",
-       "      <td>content_5fe46e04994d</td>\n",
-       "      <td>client_4e07408562</td>\n",
-       "      <td>13.157182</td>\n",
-       "      <td>517715</td>\n",
-       "      <td>104</td>\n",
-       "      <td>4.2</td>\n",
-       "      <td>1</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>1</th>\n",
-       "      <td>2</td>\n",
-       "      <td>content_2dba2b1f9536</td>\n",
-       "      <td>client_6208ef0f77</td>\n",
-       "      <td>13.002307</td>\n",
-       "      <td>443434</td>\n",
-       "      <td>104</td>\n",
-       "      <td>27.9</td>\n",
-       "      <td>0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2</th>\n",
-       "      <td>3</td>\n",
-       "      <td>content_2c2606c5d176</td>\n",
-       "      <td>client_19581e27de</td>\n",
-       "      <td>12.758232</td>\n",
-       "      <td>347399</td>\n",
-       "      <td>104</td>\n",
-       "      <td>4.2</td>\n",
-       "      <td>1</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>3</th>\n",
-       "      <td>4</td>\n",
-       "      <td>content_cb112fce36be</td>\n",
-       "      <td>client_19581e27de</td>\n",
-       "      <td>12.644040</td>\n",
-       "      <td>309910</td>\n",
-       "      <td>104</td>\n",
-       "      <td>5.6</td>\n",
-       "      <td>1</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>4</th>\n",
-       "      <td>5</td>\n",
-       "      <td>content_9532f197bbc8</td>\n",
-       "      <td>client_4e07408562</td>\n",
-       "      <td>12.641721</td>\n",
-       "      <td>309192</td>\n",
-       "      <td>104</td>\n",
-       "      <td>2.0</td>\n",
-       "      <td>1</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>5</th>\n",
-       "      <td>6</td>\n",
-       "      <td>content_36ff89c8214e</td>\n",
-       "      <td>client_19581e27de</td>\n",
-       "      <td>12.595063</td>\n",
-       "      <td>295097</td>\n",
-       "      <td>104</td>\n",
-       "      <td>7.3</td>\n",
-       "      <td>0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>6</th>\n",
-       "      <td>7</td>\n",
-       "      <td>content_b28d1efd668f</td>\n",
-       "      <td>client_6208ef0f77</td>\n",
-       "      <td>12.565874</td>\n",
-       "      <td>286608</td>\n",
-       "      <td>104</td>\n",
-       "      <td>26.2</td>\n",
-       "      <td>0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>7</th>\n",
-       "      <td>8</td>\n",
-       "      <td>content_813e88069237</td>\n",
-       "      <td>client_6208ef0f77</td>\n",
-       "      <td>12.361203</td>\n",
-       "      <td>233561</td>\n",
-       "      <td>104</td>\n",
-       "      <td>26.2</td>\n",
-       "      <td>1</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>8</th>\n",
-       "      <td>9</td>\n",
-       "      <td>content_c21024970297</td>\n",
-       "      <td>client_19581e27de</td>\n",
-       "      <td>12.261351</td>\n",
-       "      <td>211366</td>\n",
-       "      <td>104</td>\n",
-       "      <td>5.1</td>\n",
-       "      <td>0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>9</th>\n",
-       "      <td>10</td>\n",
-       "      <td>content_c8e9d6ab9013</td>\n",
-       "      <td>client_19581e27de</td>\n",
-       "      <td>12.248552</td>\n",
-       "      <td>208678</td>\n",
-       "      <td>104</td>\n",
-       "      <td>9.7</td>\n",
-       "      <td>1</td>\n",
-       "    </tr>\n",
-       "  </tbody>\n",
-       "</table>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "   rank            content_id          client_id  baseline_score  \\\n",
-       "0     1  content_5fe46e04994d  client_4e07408562       13.157182   \n",
-       "1     2  content_2dba2b1f9536  client_6208ef0f77       13.002307   \n",
-       "2     3  content_2c2606c5d176  client_19581e27de       12.758232   \n",
-       "3     4  content_cb112fce36be  client_19581e27de       12.644040   \n",
-       "4     5  content_9532f197bbc8  client_4e07408562       12.641721   \n",
-       "5     6  content_36ff89c8214e  client_19581e27de       12.595063   \n",
-       "6     7  content_b28d1efd668f  client_6208ef0f77       12.565874   \n",
-       "7     8  content_813e88069237  client_6208ef0f77       12.361203   \n",
-       "8     9  content_c21024970297  client_19581e27de       12.261351   \n",
-       "9    10  content_c8e9d6ab9013  client_19581e27de       12.248552   \n",
-       "\n",
-       "   impressions_90d  days_since_last_update  avg_position  is_declining_label  \n",
-       "0           517715                     104           4.2                   1  \n",
-       "1           443434                     104          27.9                   0  \n",
-       "2           347399                     104           4.2                   1  \n",
-       "3           309910                     104           5.6                   1  \n",
-       "4           309192                     104           2.0                   1  \n",
-       "5           295097                     104           7.3                   0  \n",
-       "6           286608                     104          26.2                   0  \n",
-       "7           233561                     104          26.2                   1  \n",
-       "8           211366                     104           5.1                   0  \n",
-       "9           208678                     104           9.7                   1  "
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    }
-   ],
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "top10 = ranked_queue.head(10)[['content_id', 'client_id', 'baseline_score', 'impressions_90d', 'days_since_last_update', 'avg_position', 'is_declining_label']].copy()\n",
     "top10['rank'] = range(1, 11)\n",
@@ -573,7 +179,6 @@
   },
   {
    "cell_type": "markdown",
-   "id": "ac59fe32",
    "metadata": {},
    "source": [
     "### Hand Review of Top 10 Queue Recommendations\n",
@@ -631,7 +236,6 @@
   },
   {
    "cell_type": "markdown",
-   "id": "43c25011",
    "metadata": {},
    "source": [
     "## 4. Weak picks + leakage check\n",
@@ -652,25 +256,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
-   "id": "9d6043ac",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-22T10:32:20.452572Z",
-     "iopub.status.busy": "2026-08-22T10:32:20.451455Z",
-     "iopub.status.idle": "2026-08-22T10:32:20.465753Z",
-     "shell.execute_reply": "2026-08-22T10:32:20.461726Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "[VERIFICATION PASSED] Baseline score uses strictly knowable baseline features (days_since_last_update, impressions_90d). Zero label-derived leakage.\n"
-     ]
-    }
-   ],
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "# Leakage Check Assertion\n",
     "forbidden_leakage_cols = [\n",
@@ -688,7 +276,6 @@
   },
   {
    "cell_type": "markdown",
-   "id": "6c5900bb",
    "metadata": {},
    "source": [
     "## Self-check\n",
@@ -710,18 +297,15 @@
    "name": "python3"
   },
   "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
    "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.13.7"
+   "version": "3.10.0"
   }
  },
  "nbformat": 4,
  "nbformat_minor": 5
 }
+
+with open('work/notebooks/w04_baseline_score.ipynb', 'w') as f:
+    json.dump(nb, f, indent=1)
+
+print('Successfully generated work/notebooks/w04_baseline_score.ipynb')
