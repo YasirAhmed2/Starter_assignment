@@ -1,0 +1,21 @@
+{
+  "rows_scored": 30000,
+  "high_confidence_rows": 5128,
+  "medium_confidence_rows": 9872,
+  "low_confidence_rows": 15000,
+  "precision_at_50": 0.78,
+  "precision_at_100": 0.83,
+  "top_score": 85.87624107649154,
+  "action_counts": {
+    "monitor": 11823,
+    "refresh": 9025,
+    "refresh_and_review_ctr": 7474,
+    "refresh_and_review_engagement": 1678
+  },
+  "review_tier_counts": {
+    "no_action_required": 13228,
+    "light_content_update": 8951,
+    "standard_editorial_review": 6505,
+    "mandatory_sme_review": 1316
+  }
+}
