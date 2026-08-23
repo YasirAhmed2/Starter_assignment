@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicting Content Traffic Decay to Prioritize Editorial Refreshes: An Observational ML Approach</title>
+    <meta name="description" content="A research paper on predicting organic search traffic decay across 79 million production records to prioritize content refreshes using machine learning.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748b;
+            --slate-300: #cbd5e1;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --slate-50: #f8fafc;
+            --accent-emerald: #059669;
+            --accent-amber: #d97706;
+            --accent-rose: #e11d48;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-serif: 'Newsreader', Georgia, serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--slate-50);
+            color: var(--slate-800);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header.site-header {
+            background-color: var(--slate-900);
+            color: #ffffff;
+            padding: 2.5rem 1.5rem;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .header-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .badge.primary {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+        }
+
+        h1.paper-title {
+            font-family: var(--font-serif);
+            font-size: 2.3rem;
+            line-height: 1.25;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .paper-meta {
+            color: var(--slate-300);
+            font-size: 0.95rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .paper-meta a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .paper-meta a:hover {
+            text-decoration: underline;
+        }
+
+        .main-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem 1.5rem;
+        }
+
+        /* Abstract Section */
+        .abstract-card {
+            background-color: #ffffff;
+            border: 1px solid var(--slate-200);
+            border-left: 5px solid var(--primary);
+            border-radius: 8px;
+            padding: 1.75rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .abstract-card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--slate-900);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .abstract-card p {
+            font-size: 1.05rem;
+            color: var(--slate-700);
+            line-height: 1.7;
+        }
+
+        .abstract-tag {
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        /* Outline & Navigation */
+        .outline-card {
+            background: var(--slate-100);
+            border-radius: 8px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 3rem;
+            border: 1px solid var(--slate-200);
+        }
+
+        .outline-card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--slate-600);
+            margin-bottom: 0.75rem;
+        }
+
+        .outline-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.5rem 1.5rem;
+            list-style: none;
+        }
+
+        .outline-nav a {
+            color: var(--slate-700);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .outline-nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Content Sections */
+        section.paper-section {
+            background: #ffffff;
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            padding: 2.25rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        section.paper-section h2 {
+            font-family: var(--font-serif);
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--slate-900);
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--slate-100);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        section.paper-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--slate-800);
+            margin: 1.5rem 0 0.75rem 0;
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            color: var(--slate-700);
+        }
+
+        ul, ol {
+            margin-bottom: 1.25rem;
+            padding-left: 1.5rem;
+            color: var(--slate-700);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Highlight Boxes */
+        .callout {
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+            font-size: 0.98rem;
+        }
+
+        .callout.info {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        .callout.warning {
+            background-color: #fffbeb;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .callout.danger {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .callout.success {
+            background-color: #ecfdf5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        /* Stat Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--slate-50);
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: var(--slate-600);
+            font-weight: 500;
+        }
+
+        /* Evaluation Table */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        table.paper-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+
+        table.paper-table th {
+            background-color: var(--slate-100);
+            color: var(--slate-800);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--slate-300);
+        }
+
+        table.paper-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        table.paper-table tr:hover {
+            background-color: var(--slate-50);
+        }
+
+        table.paper-table tr.champion-row {
+            background-color: #eff6ff;
+            font-weight: 600;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            margin: 2rem 0;
+            text-align: center;
+            background: var(--slate-50);
+            padding: 1.5rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+        }
+
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+        }
+
+        .chart-caption {
+            font-size: 0.9rem;
+            color: var(--slate-600);
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+
+        /* Code Block */
+        pre {
+            background-color: var(--slate-900);
+            color: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            background-color: var(--slate-100);
+            color: var(--primary-dark);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* Footer & Credit */
+        footer.site-footer {
+            background-color: var(--slate-900);
+            color: var(--slate-300);
+            padding: 3rem 1.5rem;
+            border-top: 1px solid var(--slate-800);
+        }
+
+        .footer-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            text-align: center;
+        }
+
+        .credit-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 1.25rem 2rem;
+            border-radius: 8px;
+            font-size: 1.05rem;
+        }
+
+        .credit-box a {
+            color: #60a5fa;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .credit-box a:hover {
+            color: #93c5fd;
+        }
+
+        @media (max-width: 640px) {
+            h1.paper-title {
+                font-size: 1.75rem;
+            }
+
+            section.paper-section {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="header-container">
+            <div class="badge-row">
+                <span class="badge primary">Research Paper</span>
+                <span class="badge">Lane 2 — Refresh Opportunity Scoring</span>
+                <span class="badge">Production ML</span>
+            </div>
+            <h1 class="paper-title">Predicting Content Traffic Decay to Prioritize Editorial Refreshes: An Observational ML Approach on 79M Organic Search Records</h1>
+            <div class="paper-meta">
+                <span><strong>Author:</strong> Yasir Ahmed</span>
+                <span><strong>Repo:</strong> <a href="https://github.com/YasirAhmed2/Starter_assignment" target="_blank">YasirAhmed2/Starter_assignment</a></span>
+                <span><strong>Dataset:</strong> FlyRank Production Search Dataset</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+
+        <!-- Abstract Card -->
+        <div class="abstract-card">
+            <h2>Abstract (Executive Summary)</h2>
+            <p>
+                <span class="abstract-tag">1. Question:</span> Enterprise organic search content operations require identifying decaying content assets at scale before traffic erosion compounds.
+                <span class="abstract-tag">2. Data:</span> We analyzed an anonymized production dataset of 79 million search impression records aggregated across 30,000 unique URLs over 90-day baseline performance windows.
+                <span class="abstract-tag">3. Methodology:</span> Using a grouped 5-fold cross-validation scheme by client domain to eliminate inter-domain leakage, we trained Logistic Regression, Decision Tree, Random Forest, and HistGradientBoosting models against a transparent domain rule baseline.
+                <span class="abstract-tag">4. Results:</span> Our champion HistGradientBoosting model achieved an out-of-fold ROC-AUC of <strong>0.6944</strong> and Precision@10 of <strong>90.0%</strong> (Precision@100 of <strong>87.0%</strong>), outperforming the rule baseline's Precision@100 of 38.0% (+49.0 percentage points lift).
+                <span class="abstract-tag">5. Practical Impact:</span> Operationalizing these predictions into a risk-calibrated action playbook reduces manual editorial review overhead by 44% while enforcing mandatory human SME verification on high-stakes updates.
+            </p>
+        </div>
+
+        <!-- Section Navigation -->
+        <div class="outline-card">
+            <h3>Table of Contents</h3>
+            <ul class="outline-nav">
+                <li><a href="#section-1">1. Introduction & Problem Framing</a></li>
+                <li><a href="#section-2">2. Data & Public Safety Pass</a></li>
+                <li><a href="#section-3">3. Methodology & Validation Design</a></li>
+                <li><a href="#section-4">4. Results & Baseline Comparison</a></li>
+                <li><a href="#section-5">5. Limitations & Honest Framing</a></li>
+                <li><a href="#section-6">6. Ranked Action Recommendations</a></li>
+                <li><a href="#section-7">7. Reproducibility & Notebooks</a></li>
+                <li><a href="#section-8">8. Acknowledgments & Data Credit</a></li>
+            </ul>
+        </div>
+
+        <!-- Section 1 -->
+        <section class="paper-section" id="section-1">
+            <h2>1. Introduction & Problem Framing</h2>
+            <p>
+                Managing organic search content portfolios across tens of thousands of published URLs presents a critical operational challenge for digital asset managers and editorial leads. Over time, content naturally experiences decay due to search intent shifts, outdated statistics, decaying click-through-rates (CTR), and evolving search engine ranking algorithms.
+            </p>
+            <p>
+                However, enterprise content operations face severe capacity constraints: copywriters and subject-matter experts (SMEs) can only refresh a small fraction of the total article library each month. Relying on simple age-based rules (e.g., "update every article older than 180 days") leads to substantial inefficiencies.
+            </p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">30,000</div>
+                    <div class="label">URLs Scored in Portfolio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">54.21%</div>
+                    <div class="label">Portfolio Decay Base Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">+49.0%</div>
+                    <div class="label">P@100 Lift Over Baseline</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">44%</div>
+                    <div class="label">Manual Review Overhead Saved</div>
+                </div>
+            </div>
+
+            <h3>Decision Context & Cost of Wrong Calls</h3>
+            <p>
+                This research supports the monthly editorial sprint planning decision. The unit of analysis is a unique pseudonymized URL (<code>content_id</code>). The model outputs a calibrated probability of decay, a composite priority score (0–100), an action classification, and a human review urgency tier.
+            </p>
+            <ul>
+                <li><strong>Cost of False Positives (over-flagging healthy pages):</strong> Wastes scarce copywriter and SME time re-editing content that is already performing optimally.</li>
+                <li><strong>Cost of False Negatives (ignoring decaying pages):</strong> Permits compounding organic search traffic loss, eroding client revenue and market authority.</li>
+            </ul>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="paper-section" id="section-2">
+            <h2>2. Data & Public Safety Pass</h2>
+            <p>
+                The research relies on the anonymized FlyRank production search dataset release (March 2026). The dataset contains ~79 million impression events aggregated into 30,000 unique content records spanning 32 client domains.
+            </p>
+            <h3>Time Windows & Features</h3>
+            <p>
+                Features are extracted over a 90-day baseline observation window, capturing impression metrics (<code>impressions_90d</code>), clicks (<code>clicks_90d</code>), user interaction rates (<code>ctr</code>, <code>engagement_rate</code>, <code>scroll_rate</code>), position distribution (<code>avg_position</code>, <code>position_tier</code>), and metadata age (<code>days_since_last_update</code>, <code>word_count</code>).
+            </p>
+
+            <div class="callout success">
+                <strong>Public Safety Pass Verification:</strong> All client identifiers have been anonymized to pseudonymous hashes (<code>client_001</code> ... <code>client_050</code>). All raw query strings, target destination URLs, and brand names have been completely removed. Zero private tokens, confidential credentials, or client-identifying data appear in this repository or publication.
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="paper-section" id="section-3">
+            <h2>3. Methodology & Validation Design</h2>
+            
+            <h3>Target Label Definition</h3>
+            <p>
+                The target variable <code>is_declining_label</code> is a binary indicator defined over a subsequent 90-day post-observation window:
+            </p>
+            <div class="callout info">
+                <code>is_declining_label = 1</code> if organic search traffic/clicks experienced a relative drop of &ge; 15% in the post-observation window compared to the 90-day baseline; <code>0</code> otherwise. The observed dataset base rate is <strong>54.21%</strong>.
+            </div>
+
+            <h3>Transparent Rule Baseline (Week 4)</h3>
+            <p>
+                To measure honest machine learning lift, we constructed a business-logic heuristic baseline representing common enterprise practice:
+            </p>
+            <pre><code>Baseline Score = (days_since_last_update &ge; 90) &times; (impressions_90d &ge; 300) &times; log1p(impressions_90d)</code></pre>
+
+            <h3>Validation Scheme & Leakage Audits</h3>
+            <p>
+                To ensure robust real-world generalization, model evaluation strictly uses <strong>5-Fold GroupKFold Cross-Validation</strong> grouped by <code>client_id</code>. This guarantees that URLs from the same domain never appear in both training and validation splits.
+            </p>
+            <p>
+                A rigorous feature leakage audit excluded 11 post-observation and label-derived columns (including <code>trend_direction</code>, <code>trend_pct</code>, <code>impressions_last_30d</code>, and <code>clicks_last_30d</code>) from model inputs.
+            </p>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="paper-section" id="section-4">
+            <h2>4. Results & Baseline Comparison</h2>
+            <p>
+                We evaluated four classifier families against the rule baseline on the exact same 5-fold GroupKFold split. Precision@K (P@K) measures the accuracy of top-ranked decay candidates delivered to content editors.
+            </p>
+
+            <div class="table-responsive">
+                <table class="paper-table">
+                    <thead>
+                        <tr>
+                            <th>Model / Baseline</th>
+                            <th>ROC-AUC</th>
+                            <th>PR-AUC</th>
+                            <th>P@10</th>
+                            <th>P@20</th>
+                            <th>P@50</th>
+                            <th>P@100</th>
+                            <th>P@500</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rule Baseline (Week 4)</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>60.0%</td>
+                            <td>45.0%</td>
+                            <td>44.0%</td>
+                            <td>38.0%</td>
+                            <td>43.6%</td>
+                        </tr>
+                        <tr>
+                            <td>Logistic Regression</td>
+                            <td>0.5730</td>
+                            <td>0.5939</td>
+                            <td>40.0%</td>
+                            <td>55.0%</td>
+                            <td>54.0%</td>
+                            <td>59.0%</td>
+                            <td>62.8%</td>
+                        </tr>
+                        <tr>
+                            <td>Decision Tree (d=5)</td>
+                            <td>0.6580</td>
+                            <td>0.6510</td>
+                            <td>10.0%</td>
+                            <td>10.0%</td>
+                            <td>22.0%</td>
+                            <td>29.0%</td>
+                            <td>57.2%</td>
+                        </tr>
+                        <tr>
+                            <td>Random Forest</td>
+                            <td>0.6619</td>
+                            <td>0.6557</td>
+                            <td>80.0%</td>
+                            <td>60.0%</td>
+                            <td>60.0%</td>
+                            <td>54.0%</td>
+                            <td>64.4%</td>
+                        </tr>
+                        <tr class="champion-row">
+                            <td>HistGradientBoosting (Champion)</td>
+                            <td><strong>0.6944</strong></td>
+                            <td><strong>0.6964</strong></td>
+                            <td><strong>90.0%</strong></td>
+                            <td><strong>95.0%</strong></td>
+                            <td><strong>92.0%</strong></td>
+                            <td><strong>87.0%</strong></td>
+                            <td><strong>77.8%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Key Findings & Visualizations</h3>
+            <p>
+                HistGradientBoosting achieved top discrimination performance across all metrics. At top 100 recommendations (P@100 = 87.0%), 87 out of 100 flagged articles undergo true performance decay, achieving a <strong>+49.0 percentage point lift</strong> over the rule baseline (38.0%).
+            </p>
+
+            <div class="chart-container">
+                <img src="charts/w07_action_mix.svg" alt="Action Mix Distribution Chart">
+                <p class="chart-caption">Figure 1: Distribution of risk-calibrated editorial recommendations across the 30,000 URL portfolio.</p>
+            </div>
+
+            <div class="chart-container">
+                <img src="charts/w07_decay_by_freshness.svg" alt="Traffic Decay Rate by Freshness Tier">
+                <p class="chart-caption">Figure 2: Observed traffic decay rate across content freshness tiers, highlighting accelerating decay in stale assets (&gt; 180 days).</p>
+            </div>
+        </section>
+
+        <!-- Section 5 -->
+        <section class="paper-section" id="section-5">
+            <h2>5. Limitations & Honest Framing</h2>
+            <p>
+                To maintain research integrity and prevent overclaiming, we explicitly document the operational limits of this model:
+            </p>
+            <ol>
+                <li><strong>Observational Design (Non-Causal):</strong> The model identifies historical statistical correlations associated with traffic decline. It does <em>not</em> prove causality or guarantee specific traffic lifts post-refresh.</li>
+                <li><strong>Cold-Start Boundary:</strong> Pages with zero historical 90-day search impressions (e.g., newly published URLs) lack performance signals and must follow a separate initial indexation queue.</li>
+                <li><strong>Unobserved Qualitative Factors:</strong> Quantitative signals (clicks, age, CTR) cannot measure writing quality, topical depth, or subjective user experience.</li>
+                <li><strong>Search Engine Core Updates:</strong> Major unannounced search engine algorithm updates alter ranking mechanics outside static feature distributions.</li>
+            </ol>
+        </section>
+
+        <!-- Section 6 -->
+        <section class="paper-section" id="section-6">
+            <h2>6. Ranked Action Playbook</h2>
+            <p>
+                Model predictions are translated into an actionable content playbook, mapping decay probability and performance signals into four discrete action categories and four human review urgency tiers.
+            </p>
+
+            <h3>Action Taxonomy</h3>
+            <ul>
+                <li><code>refresh</code> (63.1% / 18,937 URLs): Standard content update for aging assets experiencing moderate decay.</li>
+                <li><code>refresh_and_review_ctr</code> (6.4% / 1,931 URLs): Title tag, meta description, and snippet optimization for high-impression, low-CTR assets.</li>
+                <li><code>refresh_and_review_engagement</code> (0.4% / 116 URLs): In-depth content expansion and structural overhaul for low-engagement assets.</li>
+                <li><code>monitor</code> (30.1% / 9,016 URLs): Stable high-performing or recently updated content requiring zero intervention.</li>
+            </ul>
+
+            <div class="callout danger">
+                <strong>Strict Prohibited Automations (The No-Go List):</strong><br>
+                1. <strong>NO</strong> auto-rewriting live content with unedited LLMs without human SME verification.<br>
+                2. <strong>NO</strong> automated URL deletions, page merges, or 301 redirects.<br>
+                3. <strong>NO</strong> programmatic title tag swaps on top-converting landing pages.<br>
+                4. <strong>NO</strong> unsupervised updates on YMYL (Your Money or Your Life) topics.
+            </div>
+        </section>
+
+        <!-- Section 7 -->
+        <section class="paper-section" id="section-7">
+            <h2>7. Reproducibility & Notebooks</h2>
+            <p>
+                This research is fully reproducible from the open GitHub repository:
+            </p>
+            <pre><code># Reproduction Steps:
+git clone https://github.com/YasirAhmed2/Starter_assignment.git
+cd Starter_assignment
+pip install -r requirements.txt
+python scratch/run_capstone_notebook.py</code></pre>
+            <p>
+                <strong>Environment & Random Seed:</strong> Python 3.11, scikit-learn 1.3+, Random Seed = 42.
+            </p>
+            <p>
+                <strong>Notebook Links:</strong>
+                <ul>
+                    <li><a href="https://github.com/YasirAhmed2/Starter_assignment/blob/main/work/notebooks/capstone.ipynb" target="_blank">capstone.ipynb (Mirrors this paper)</a></li>
+                    <li><a href="https://github.com/YasirAhmed2/Starter_assignment/blob/main/work/notebooks/w05_model.ipynb" target="_blank">w05_model.ipynb (Model comparison)</a></li>
+                    <li><a href="https://github.com/YasirAhmed2/Starter_assignment/blob/main/work/notebooks/w07_action_playbook.ipynb" target="_blank">w07_action_playbook.ipynb (Action playbook)</a></li>
+                </ul>
+            </p>
+        </section>
+
+        <!-- Section 8 -->
+        <section class="paper-section" id="section-8">
+            <h2>8. Acknowledgments & Data Credit</h2>
+            <div class="callout info" style="text-align: center; font-size: 1.1rem; padding: 1.5rem;">
+                Built on the <a href="https://flyrank.ai/" target="_blank" style="font-weight: 700; color: #1d4ed8; text-decoration: underline;">FlyRank ML Internship dataset</a>.
+            </div>
+            <p style="text-align: center; color: var(--slate-600); margin-top: 1rem;">
+                We gratefully acknowledge FlyRank for providing access to the anonymized production search dataset and infrastructure framing that made this research possible.
+            </p>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="credit-box">
+                Built on the <a href="https://flyrank.ai/" target="_blank">FlyRank ML Internship dataset</a>
+            </div>
+            <p>&copy; 2026 Yasir Ahmed · FlyRank Machine Learning Engineering Track</p>
+        </div>
+    </footer>
+
+</body>
+</html>
