@@ -639,13 +639,23 @@
             </p>
 
             <div class="chart-container">
+                <img src="charts/capstone_pak_comparison.svg" alt="Precision@K Comparison: All Models vs Rule Baseline">
+                <p class="chart-caption">Figure 1: Precision@K comparison across all models vs. rule baseline (5-Fold GroupKFold OOF). HistGradientBoosting consistently outperforms at every K threshold.</p>
+            </div>
+
+            <div class="chart-container">
+                <img src="charts/capstone_feature_importance.svg" alt="Feature Importance (Permutation Importance) — HistGradientBoosting Champion">
+                <p class="chart-caption">Figure 2: Top 15 features by permutation importance (ROC-AUC drop). Content freshness, impression volume, and engagement signals dominate decay prediction.</p>
+            </div>
+
+            <div class="chart-container">
                 <img src="charts/w07_action_mix.svg" alt="Action Mix Distribution Chart">
-                <p class="chart-caption">Figure 1: Distribution of risk-calibrated editorial recommendations across the 30,000 URL portfolio.</p>
+                <p class="chart-caption">Figure 3: Distribution of risk-calibrated editorial recommendations across the 30,000 URL portfolio.</p>
             </div>
 
             <div class="chart-container">
                 <img src="charts/w07_decay_by_freshness.svg" alt="Traffic Decay Rate by Freshness Tier">
-                <p class="chart-caption">Figure 2: Observed traffic decay rate across content freshness tiers, highlighting accelerating decay in stale assets (&gt; 180 days).</p>
+                <p class="chart-caption">Figure 4: Observed traffic decay rate across content freshness tiers, highlighting accelerating decay in stale assets (&gt; 180 days).</p>
             </div>
         </section>
 
@@ -697,7 +707,8 @@
 git clone https://github.com/YasirAhmed2/Starter_assignment.git
 cd Starter_assignment
 pip install -r requirements.txt
-python scratch/run_capstone_notebook.py</code></pre>
+# Place data/raw/content_refresh_anonymized.csv (FlyRank HuggingFace release)
+jupyter nbconvert --to notebook --execute --inplace work/notebooks/capstone.ipynb</code></pre>
             <p>
                 <strong>Environment & Random Seed:</strong> Python 3.11, scikit-learn 1.3+, Random Seed = 42.
             </p>
