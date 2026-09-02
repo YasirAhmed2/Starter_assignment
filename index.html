@@ -452,11 +452,11 @@
         <div class="abstract-card">
             <h2>Abstract (Executive Summary)</h2>
             <p>
-                <span class="abstract-tag">1. Question:</span> Enterprise organic search content operations require identifying decaying content assets at scale before traffic erosion compounds.
-                <span class="abstract-tag">2. Data:</span> We analyzed an anonymized production dataset of 79 million search impression records aggregated across 30,000 unique URLs over 90-day baseline performance windows.
-                <span class="abstract-tag">3. Methodology:</span> Using a grouped 5-fold cross-validation scheme by client domain to eliminate inter-domain leakage, we trained Logistic Regression, Decision Tree, Random Forest, and HistGradientBoosting models against a transparent domain rule baseline.
-                <span class="abstract-tag">4. Results:</span> Our champion HistGradientBoosting model achieved an out-of-fold ROC-AUC of <strong>0.6944</strong> and Precision@10 of <strong>90.0%</strong> (Precision@100 of <strong>87.0%</strong>), outperforming the rule baseline's Precision@100 of 38.0% (+49.0 percentage points lift).
-                <span class="abstract-tag">5. Practical Impact:</span> Operationalizing these predictions into a risk-calibrated action playbook reduces manual editorial review overhead by 44% while enforcing mandatory human SME verification on high-stakes updates.
+                <span class="abstract-tag">1. Question:</span> In enterprise organic search operations, digital content decays over time while human editorial capacity remains strictly limited. How can FlyRank—an automated content infrastructure platform—accurately predict which published URLs will suffer organic traffic decay to prioritize human editorial refreshes?
+                <span class="abstract-tag">2. Data:</span> We analyzed FlyRank's production search dataset of 79 million search impression records aggregated across 30,000 unique URLs and 32 client domains over 90-day baseline observation windows.
+                <span class="abstract-tag">3. Methodology:</span> Using a grouped 5-fold cross-validation scheme by client domain to eliminate inter-client leakage, we trained Logistic Regression, Decision Tree, Random Forest, and HistGradientBoosting models against FlyRank's existing domain rule heuristic.
+                <span class="abstract-tag">4. Results:</span> Our champion HistGradientBoosting model achieved an out-of-fold ROC-AUC of <strong>0.6944</strong> and Precision@100 of <strong>87.0%</strong> (Precision@10 of <strong>90.0%</strong>), delivering a <strong>+49.0 percentage point lift</strong> over the rule baseline (38.0% P@100).
+                <span class="abstract-tag">5. Practical Impact (Case Study):</span> Operationalizing these predictions into a risk-calibrated triage playbook reduces manual review overhead by 44% via automated metadata updates on low-risk pages while routing high-stakes, decaying revenue drivers directly to human SMEs.
             </p>
         </div>
 
@@ -464,25 +464,29 @@
         <div class="outline-card">
             <h3>Table of Contents</h3>
             <ul class="outline-nav">
-                <li><a href="#section-1">1. Introduction & Problem Framing</a></li>
+                <li><a href="#section-1">1. Introduction & Case Study Framing</a></li>
                 <li><a href="#section-2">2. Data & Public Safety Pass</a></li>
                 <li><a href="#section-3">3. Methodology & Validation Design</a></li>
                 <li><a href="#section-4">4. Results & Baseline Comparison</a></li>
                 <li><a href="#section-5">5. Limitations & Honest Framing</a></li>
-                <li><a href="#section-6">6. Ranked Action Recommendations</a></li>
+                <li><a href="#section-6">6. Ranked Action Playbook</a></li>
                 <li><a href="#section-7">7. Reproducibility & Notebooks</a></li>
-                <li><a href="#section-8">8. Acknowledgments & Data Credit</a></li>
+                <li><a href="#section-8">8. 5-Minute Showcase Demo & Shareable Cuts</a></li>
+                <li><a href="#section-9">9. Acknowledgments & Data Credit</a></li>
             </ul>
         </div>
 
         <!-- Section 1 -->
         <section class="paper-section" id="section-1">
-            <h2>1. Introduction & Problem Framing</h2>
+            <h2>1. Introduction & Case Study Framing</h2>
             <p>
-                Managing organic search content portfolios across tens of thousands of published URLs presents a critical operational challenge for digital asset managers and editorial leads. Over time, content naturally experiences decay due to search intent shifts, outdated statistics, decaying click-through-rates (CTR), and evolving search engine ranking algorithms.
+                <strong>The FlyRank Context:</strong> FlyRank builds content as infrastructure: autonomously researching, generating, and publishing high-quality content directly into client websites, then tracking post-publication search performance. Across large enterprise client portfolios spanning tens of thousands of URLs, published content naturally experiences organic search traffic decay over time due to search intent shifts, outdated statistics, decaying click-through-rates (CTR), and evolving search engine ranking algorithms.
             </p>
             <p>
-                However, enterprise content operations face severe capacity constraints: copywriters and subject-matter experts (SMEs) can only refresh a small fraction of the total article library each month. Relying on simple age-based rules (e.g., "update every article older than 180 days") leads to substantial inefficiencies.
+                <strong>The Core Decision Bottleneck:</strong> Enterprise editorial and copywriting capacity is strictly finite: content teams can only realistically audit and refresh a small fraction (~200–500 articles per month) of their entire library. The critical operational decision is: <em>out of thousands of managed pages, which decaying asset should a human editor or copywriter fix FIRST?</em>
+            </p>
+            <p>
+                <strong>The "Beat the Rule" Challenge:</strong> Today, content operations often rely on hand-written heuristic flags (e.g. "flag any article older than 180 days with CTR &lt; 2%"). In practice, these static rules struggle when search signals become tangled and non-linear, yielding a Precision@100 of only 38.0%—actually performing worse than the 54.21% portfolio decay base rate. This case study demonstrates how a learned ranking model replaces static heuristics to accurately prioritize the editorial queue.
             </p>
 
             <div class="stats-grid">
@@ -506,11 +510,11 @@
 
             <h3>Decision Context & Cost of Wrong Calls</h3>
             <p>
-                This research supports the monthly editorial sprint planning decision. The unit of analysis is a unique pseudonymized URL (<code>content_id</code>). The model outputs a calibrated probability of decay, a composite priority score (0–100), an action classification, and a human review urgency tier.
+                This research supports the monthly editorial sprint planning workflow. The unit of analysis is a unique pseudonymized URL (<code>content_id</code>). The model outputs a calibrated probability of decay, a composite priority score (0–100), an action classification, and a human review urgency tier.
             </p>
             <ul>
-                <li><strong>Cost of False Positives (over-flagging healthy pages):</strong> Wastes scarce copywriter and SME time re-editing content that is already performing optimally.</li>
-                <li><strong>Cost of False Negatives (ignoring decaying pages):</strong> Permits compounding organic search traffic loss, eroding client revenue and market authority.</li>
+                <li><strong>Cost of False Positives (over-flagging healthy pages):</strong> Wastes scarce copywriter and SME bandwidth re-editing content that is already ranking well and converting traffic.</li>
+                <li><strong>Cost of False Negatives (ignoring decaying pages):</strong> Permits compounding organic search traffic loss, eroding client organic revenue and topical authority.</li>
             </ul>
         </section>
 
@@ -724,7 +728,49 @@ jupyter nbconvert --to notebook --execute --inplace work/notebooks/capstone.ipyn
 
         <!-- Section 8 -->
         <section class="paper-section" id="section-8">
-            <h2>8. Acknowledgments & Data Credit</h2>
+            <h2>8. 5-Minute Showcase Demo & Shareable Cuts</h2>
+            <p>
+                Structured for the Week-8 presentation showcase and public research dissemination:
+            </p>
+
+            <div class="callout info">
+                <h3>5-Minute Demo Outline</h3>
+                <ul>
+                    <li><strong>Minute 1 (The Question):</strong> Content as infrastructure means managing 30,000+ published URLs where traffic quietly decays. With editorial capacity capped at ~300 refreshes/month, which decaying URL should an editor fix <em>first</em>? Hand-crafted rules only yield 38% P@100.</li>
+                    <li><strong>Minute 2 (The Method):</strong> 79M impression logs, 5-Fold GroupKFold strictly by client domain (zero leakage), 11 post-observation variables excluded, benchmarking Logistic Regression, Trees, and Gradient Boosting against the rule baseline.</li>
+                    <li><strong>Minute 3 (The Chart):</strong> Figure 1 (Precision@K comparison) — HistGradientBoosting reaches 87.0% Precision@100 vs. 38.0% for the baseline (+49.0% lift).</li>
+                    <li><strong>Minute 4 (The Honest Result):</strong> Champion out-of-fold ROC-AUC of 0.6944 and PR-AUC of 0.6964. Observational ranking without causal overclaims; 1,328 cold-start URLs routed to a separate discovery pipeline.</li>
+                    <li><strong>Minute 5 (The Recommendation):</strong> Risk-calibrated triage saves 44% review overhead via automated metadata updates on low-risk pages while routing high-stakes revenue drivers to human SMEs.</li>
+                </ul>
+            </div>
+
+            <h3>Shareable Cuts of the Work</h3>
+            
+            <div style="background: var(--slate-900); color: #e2e8f0; border-radius: 8px; padding: 1.25rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.6;">
+                <div style="color: #93c5fd; font-weight: 600; margin-bottom: 0.5rem; font-family: var(--font-sans);">[Cut 1: Methodology Social Post]</div>
+How do you prioritize content refreshes across 30,000 URLs when editorial capacity is capped at 300 articles a month? 
+
+In my latest ML capstone with FlyRank, I built and validated a machine learning ranking system on 79M production search records to predict organic traffic decay. 
+
+Key takeaway: Hand-crafted heuristic rules (e.g. age > 180 days) achieved only 38.0% Precision@100 (lagging the 54.2% portfolio decay base rate). By training a gradient-boosted classifier with 5-fold domain-grouped cross-validation to prevent client leakage, we achieved 87.0% Precision@100 (+49% lift) and an out-of-fold ROC-AUC of 0.6944.
+
+We translated these predictions into an operational triage playbook that automates safe metadata updates on low-risk pages while routing high-stakes refreshes to human editors.
+
+Full paper & reproducible notebooks: https://yasirahmed2.github.io/Starter_assignment/
+#MachineLearning #DataScience #SearchEngineering #MLOps #FlyRank
+            </div>
+
+            <div style="background: #ffffff; border: 1px solid var(--slate-200); border-left: 4px solid var(--primary); border-radius: 6px; padding: 1.25rem; margin: 1rem 0;">
+                <div style="color: var(--primary-dark); font-weight: 700; margin-bottom: 0.5rem;">[Cut 2: 3-Sentence Employer-Facing Summary]</div>
+                <p style="margin-bottom: 0.5rem;"><strong>What I built:</strong> An end-to-end machine learning ranking and editorial triage pipeline that predicts organic search traffic decay and prioritizes content refresh sprints.</p>
+                <p style="margin-bottom: 0.5rem;"><strong>On what data:</strong> An anonymized production dataset of 79 million search impression records aggregated across 30,000 URLs and 32 client domains, validated with 5-fold domain-grouped cross-validation to eliminate cross-client leakage.</p>
+                <p style="margin-bottom: 0;"><strong>What it showed:</strong> A gradient-boosted classifier achieved 87.0% Precision@100 (+49.0 percentage point lift over rule-based heuristics) and an ROC-AUC of 0.6944, enabling an operational workflow that reduces manual editorial review overhead by 44% while protecting top-tier search revenue.</p>
+            </div>
+        </section>
+
+        <!-- Section 9 -->
+        <section class="paper-section" id="section-9">
+            <h2>9. Acknowledgments & Data Credit</h2>
             <div class="callout info" style="text-align: center; font-size: 1.1rem; padding: 1.5rem;">
                 Built on the <a href="https://flyrank.ai/" target="_blank" style="font-weight: 700; color: #1d4ed8; text-decoration: underline;">FlyRank ML Internship dataset</a>.
             </div>
